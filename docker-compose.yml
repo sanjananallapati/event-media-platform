@@ -1,0 +1,109 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: event_media_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: event_media_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: event_media_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: event_media_backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: "postgresql://postgres:password@postgres:5432/event_media_db"
+      REDIS_URL: "redis://redis:6379"
+      NODE_ENV: production
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - uploads_data:/app/uploads
+    networks:
+      - app_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: event_media_frontend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PORT: 3000
+      NEXT_PUBLIC_API_URL: "http://localhost:5000/api"
+      NEXT_PUBLIC_SOCKET_URL: "http://localhost:5000"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - app_network
+
+  prisma_migrate:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: event_media_migrate
+    command: sh -c "npx prisma migrate deploy && npx prisma db seed"
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: "postgresql://postgres:password@postgres:5432/event_media_db"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app_network
+    profiles:
+      - migrate
+
+volumes:
+  postgres_data:
+  redis_data:
+  uploads_data:
+
+networks:
+  app_network:
+    driver: bridge
+

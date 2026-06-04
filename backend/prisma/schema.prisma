@@ -47,6 +47,12 @@ enum EventCategory {
   OTHER
 }
 
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id                String    @id @default(cuid())
   email             String    @unique
@@ -61,7 +67,7 @@ model User {
   isActive          Boolean   @default(true)
   selfieUrl         String?
   selfieKey         String?
-  faceId            String?   // AWS Rekognition Face ID
+  faceId            String?
   rekognitionIndexed Boolean  @default(false)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
@@ -81,10 +87,31 @@ model User {
   refreshTokens     RefreshToken[]
   albums            Album[]
   collaborativeAlbums AlbumCollaborator[]
+  roleRequests      RoleRequest[]     @relation("requester")
+  reviewedRequests  RoleRequest[]     @relation("reviewer")
 
   @@index([email])
   @@index([username])
   @@index([faceId])
+}
+
+model RoleRequest {
+  id            String        @id @default(cuid())
+  userId        String
+  requestedRole UserRole
+  status        RequestStatus @default(PENDING)
+  remarks       String?
+  reviewedBy    String?
+  reviewedAt    DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  user     User  @relation("requester", fields: [userId], references: [id], onDelete: Cascade)
+  reviewer User? @relation("reviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model RefreshToken {
@@ -118,7 +145,6 @@ model Event {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
-  // Relations
   createdBy   User          @relation(fields: [createdById], references: [id])
   albums      Album[]
   media       Media[]
@@ -143,7 +169,6 @@ model Album {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
-  // Relations
   event         Event?              @relation(fields: [eventId], references: [id], onDelete: SetNull)
   createdBy     User                @relation(fields: [createdById], references: [id])
   media         Media[]
@@ -172,19 +197,19 @@ model Media {
   size        Int
   width       Int?
   height      Int?
-  duration    Float?      // For videos in seconds
-  url         String      // S3 URL
-  key         String      // S3 Key
+  duration    Float?
+  url         String
+  key         String
   thumbnailUrl String?
   thumbnailKey String?
   type        MediaType
   accessLevel AccessLevel @default(PUBLIC)
   caption     String?
-  aiCaption   String?     // AI generated caption
+  aiCaption   String?
   isModerated Boolean     @default(false)
   isDuplicate Boolean     @default(false)
   duplicateOf String?
-  perceptualHash String?  // For duplicate detection
+  perceptualHash String?
   uploaderId  String
   eventId     String?
   albumId     String?
@@ -194,7 +219,6 @@ model Media {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
-  // Relations
   uploader    User        @relation("uploader", fields: [uploaderId], references: [id])
   event       Event?      @relation(fields: [eventId], references: [id], onDelete: SetNull)
   album       Album?      @relation(fields: [albumId], references: [id], onDelete: SetNull)

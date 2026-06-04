@@ -16,6 +16,7 @@ import searchRoutes from './routes/search.routes';
 import analyticsRoutes from './routes/analytics.routes';
 import storyRoutes from './routes/story.routes';
 import faceRoutes from './routes/face.routes';
+import roleRequestRoutes from './routes/roleRequest.routes';
 
 import { errorHandler } from './middleware/error.middleware';
 import { logger } from './utils/logger';
@@ -37,7 +38,7 @@ app.use(cors({
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 1000,
   message: { error: 'Too many requests, please try again later.' },
   standardHeaders: true,
@@ -69,8 +70,8 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Health check
 app.get('/health', (req: Request, res: Response) => {
-  res.json({ 
-    status: 'ok', 
+  res.json({
+    status: 'ok',
     timestamp: new Date().toISOString(),
     version: '1.0.0',
   });
@@ -87,6 +88,7 @@ app.use('/api/search', searchRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/stories', storyRoutes);
 app.use('/api/face', faceRoutes);
+app.use('/api/role-requests', roleRequestRoutes);  // NEW
 
 // 404 handler
 app.use('*', (req: Request, res: Response) => {

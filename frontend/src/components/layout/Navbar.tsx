@@ -1,58 +1,78 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/store/auth.store';
-import { Menu, X, Camera, LogIn, UserPlus } from 'lucide-react';
+import { Menu, X, Camera, LogIn, UserPlus, LayoutDashboard } from 'lucide-react';
 
 export function Navbar() {
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 glass border-b">
-      <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 font-bold text-xl text-primary-600">
-          <Camera className="w-6 h-6" />
-          EventMedia
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        scrolled
+          ? 'bg-[#0A0A0F]/90 backdrop-blur-xl border-b border-[#27272A]/80 shadow-[0_1px_0_rgba(255,255,255,0.03)]'
+          : 'bg-transparent border-b border-transparent'
+      }`}
+    >
+      <nav className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <div className="w-8 h-8 rounded-lg bg-violet-600/20 border border-violet-500/30 flex items-center justify-center group-hover:bg-violet-600/30 transition-colors">
+            <Camera className="w-4 h-4 text-violet-400" />
+          </div>
+          <span className="font-semibold text-lg text-white tracking-tight font-display">
+            Event<span className="text-violet-400">Media</span>
+          </span>
         </Link>
 
-        {/* Desktop Menu */}
-        <div className="hidden md:flex items-center gap-6">
-          <Link href="/events" className="text-secondary-600 hover:text-primary-600 transition-colors">
+        {/* Desktop Nav Links */}
+        <div className="hidden md:flex items-center gap-1">
+          <Link href="/events" className="px-4 py-2 rounded-lg text-sm font-medium text-[#A1A1AA] hover:text-white hover:bg-white/5 transition-all duration-200">
             Events
           </Link>
-          <Link href="/explore" className="text-secondary-600 hover:text-primary-600 transition-colors">
+          <Link href="/explore" className="px-4 py-2 rounded-lg text-sm font-medium text-[#A1A1AA] hover:text-white hover:bg-white/5 transition-all duration-200">
             Explore
           </Link>
+        </div>
+
+        {/* Desktop Auth */}
+        <div className="hidden md:flex items-center gap-3">
           {isAuthenticated ? (
             <Link href="/dashboard" className="btn-primary">
+              <LayoutDashboard className="w-4 h-4" />
               Dashboard
             </Link>
           ) : (
-            <div className="flex items-center gap-3">
-              <Link
-                href="/login"
-                className="text-secondary-600 hover:text-primary-600 transition-colors flex items-center gap-1"
-              >
-                <LogIn className="w-4 h-4" />
+            <>
+              <Link href="/login" className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-[#A1A1AA] hover:text-white hover:bg-white/5 transition-all duration-200">
+                <LogIn className="w-3.5 h-3.5" />
                 Login
               </Link>
               <Link href="/register" className="btn-primary">
-                <UserPlus className="w-4 h-4 mr-1" />
+                <UserPlus className="w-3.5 h-3.5" />
                 Sign Up
               </Link>
-            </div>
+            </>
           )}
         </div>
 
-        {/* Mobile Menu Button */}
+        {/* Mobile Toggle */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden p-2"
+          className="md:hidden w-9 h-9 flex items-center justify-center rounded-lg border border-[#27272A] text-[#A1A1AA] hover:text-white hover:border-[#3f3f46] transition-all"
         >
-          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
         </button>
       </nav>
 
@@ -63,49 +83,28 @@ export function Navbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-white dark:bg-secondary-800 border-b"
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="md:hidden overflow-hidden bg-[#0D1117]/95 backdrop-blur-xl border-b border-[#27272A]"
           >
-            <div className="container mx-auto px-4 py-4 space-y-3">
-              <Link
-                href="/events"
-                className="block py-2 text-secondary-600 hover:text-primary-600"
-                onClick={() => setMobileMenuOpen(false)}
-              >
+            <div className="max-w-7xl mx-auto px-6 py-4 space-y-1">
+              <Link href="/events" className="flex items-center px-4 py-2.5 rounded-lg text-sm text-[#A1A1AA] hover:text-white hover:bg-white/5 transition-all" onClick={() => setMobileMenuOpen(false)}>
                 Events
               </Link>
-              <Link
-                href="/explore"
-                className="block py-2 text-secondary-600 hover:text-primary-600"
-                onClick={() => setMobileMenuOpen(false)}
-              >
+              <Link href="/explore" className="flex items-center px-4 py-2.5 rounded-lg text-sm text-[#A1A1AA] hover:text-white hover:bg-white/5 transition-all" onClick={() => setMobileMenuOpen(false)}>
                 Explore
               </Link>
-              {isAuthenticated ? (
-                <Link
-                  href="/dashboard"
-                  className="btn-primary w-full justify-center"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Dashboard
-                </Link>
-              ) : (
-                <div className="space-y-2">
-                  <Link
-                    href="/login"
-                    className="block py-2 text-secondary-600 hover:text-primary-600"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Login
+              <div className="pt-3 mt-3 border-t border-[#27272A] space-y-2">
+                {isAuthenticated ? (
+                  <Link href="/dashboard" className="btn-primary w-full" onClick={() => setMobileMenuOpen(false)}>
+                    <LayoutDashboard className="w-4 h-4" /> Dashboard
                   </Link>
-                  <Link
-                    href="/register"
-                    className="btn-primary w-full justify-center"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Sign Up
-                  </Link>
-                </div>
-              )}
+                ) : (
+                  <>
+                    <Link href="/login" className="btn-secondary w-full" onClick={() => setMobileMenuOpen(false)}>Login</Link>
+                    <Link href="/register" className="btn-primary w-full" onClick={() => setMobileMenuOpen(false)}>Sign Up</Link>
+                  </>
+                )}
+              </div>
             </div>
           </motion.div>
         )}

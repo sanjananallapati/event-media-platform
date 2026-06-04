@@ -4,6 +4,7 @@ RUN apk add --no-cache python3 make g++ vips-dev openssl
 
 FROM base AS deps
 COPY package*.json ./
+COPY prisma ./prisma
 RUN npm install
 
 FROM base AS builder

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth.store';
 import { DashboardSidebar } from '@/components/layout/DashboardSidebar';
@@ -11,27 +11,52 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, isAuthenticated, checkAuth } = useAuthStore();
+  const { isAuthenticated, checkAuth } = useAuthStore();
   const router = useRouter();
+  // Three states: 'checking' | 'authenticated' | 'unauthenticated'
+  const [authState, setAuthState] = useState<'checking' | 'authenticated' | 'unauthenticated'>('checking');
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      checkAuth().catch(() => {
-        router.push('/login');
-      });
-    }
-  }, [isAuthenticated, checkAuth, router]);
+    const verify = async () => {
+      try {
+        await checkAuth();
+        // After checkAuth, read the fresh store state
+        const state = useAuthStore.getState();
+        if (state.isAuthenticated) {
+          setAuthState('authenticated');
+        } else {
+          setAuthState('unauthenticated');
+          router.replace('/login');
+        }
+      } catch {
+        setAuthState('unauthenticated');
+        router.replace('/login');
+      }
+    };
 
-  if (!isAuthenticated) {
+    // If already authenticated (e.g. persisted token was valid), skip checkAuth
+    if (isAuthenticated) {
+      setAuthState('authenticated');
+    } else {
+      verify();
+    }
+  }, []); // Run only once on mount
+
+  if (authState === 'checking') {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0f] gap-4">
+        <div className="w-10 h-10 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+        <p className="text-gray-500 text-sm">Loading…</p>
       </div>
     );
   }
 
+  if (authState === 'unauthenticated') {
+    return null;
+  }
+
   return (
-    <div className="min-h-screen flex bg-secondary-50 dark:bg-secondary-900">
+    <div className="min-h-screen flex bg-[#0a0a0f]">
       <DashboardSidebar />
       <div className="flex-1 flex flex-col min-h-screen lg:ml-64">
         <DashboardHeader />

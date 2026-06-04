@@ -12,6 +12,7 @@ import {
 
 const router = Router();
 
+// POST /api/auth/register
 router.post(
   '/register',
   validate([
@@ -22,8 +23,8 @@ router.post(
       .matches(/^[a-zA-Z0-9_]+$/)
       .withMessage('Username can only contain letters, numbers, and underscores'),
     body('password')
-      .isLength({ min: 6 })
-      .withMessage('Password must be at least 6 characters'),
+      .isLength({ min: 8 })
+      .withMessage('Password must be at least 8 characters'),
     body('fullName')
       .isLength({ min: 2 })
       .withMessage('Full name is required'),
@@ -31,6 +32,7 @@ router.post(
   register
 );
 
+// POST /api/auth/login
 router.post(
   '/login',
   validate([
@@ -40,10 +42,13 @@ router.post(
   login
 );
 
+// POST /api/auth/refresh
 router.post('/refresh', refreshToken);
 
-router.post('/logout', authenticate, logout);
+// POST /api/auth/logout — does NOT require authenticate so expired tokens can still log out
+router.post('/logout', logout);
 
+// GET /api/auth/me
 router.get('/me', authenticate, getMe);
 
 export default router;

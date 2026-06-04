@@ -1,4 +1,4 @@
-import { PrismaClient, UserRole, EventCategory, AccessLevel } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -6,123 +6,122 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('🌱 Starting seed...');
 
-  // Create admin user
+  // ── Admin ──────────────────────────────────────────────────────────────────
   const adminPassword = await bcrypt.hash('admin123', 12);
   const admin = await prisma.user.upsert({
-    where: { email: 'admin@eventmedia.com' },
-    update: {},
+    where: { email: 'admin@example.com' },
+    update: { role: 'ADMIN', password: adminPassword },
     create: {
-      email: 'admin@eventmedia.com',
+      email: 'admin@example.com',
       username: 'admin',
       password: adminPassword,
-      fullName: 'System Admin',
+      fullName: 'Admin',
       role: 'ADMIN',
       isVerified: true,
       bio: 'Platform administrator',
     },
   });
+  console.log('✅ Admin:', admin.email);
 
-  // Create photographer user
+  // ── Photographer ───────────────────────────────────────────────────────────
   const photographerPassword = await bcrypt.hash('photo123', 12);
   const photographer = await prisma.user.upsert({
-    where: { email: 'photographer@eventmedia.com' },
+    where: { email: 'photographer@example.com' },
     update: {},
     create: {
-      email: 'photographer@eventmedia.com',
+      email: 'photographer@example.com',
       username: 'photographer',
       password: photographerPassword,
-      fullName: 'John Photographer',
+      fullName: 'Jane Photographer',
       role: 'PHOTOGRAPHER',
       isVerified: true,
       bio: 'Club photographer',
     },
   });
 
-  // Create club member user
+  // ── Club Member ────────────────────────────────────────────────────────────
   const memberPassword = await bcrypt.hash('member123', 12);
-  const member = await prisma.user.upsert({
-    where: { email: 'member@eventmedia.com' },
+  const clubMember = await prisma.user.upsert({
+    where: { email: 'club_m@example.com' },
     update: {},
     create: {
-      email: 'member@eventmedia.com',
-      username: 'clubmember',
+      email: 'club_m@example.com',
+      username: 'club_m',
       password: memberPassword,
-      fullName: 'Jane Member',
+      fullName: 'Club Member',
       role: 'CLUB_MEMBER',
       isVerified: true,
-      bio: 'Active club member',
     },
   });
 
-  // Create viewer user
+  // ── Viewer ─────────────────────────────────────────────────────────────────
   const viewerPassword = await bcrypt.hash('viewer123', 12);
   const viewer = await prisma.user.upsert({
-    where: { email: 'viewer@eventmedia.com' },
+    where: { email: 'viewer@example.com' },
     update: {},
     create: {
-      email: 'viewer@eventmedia.com',
+      email: 'viewer@example.com',
       username: 'viewer',
       password: viewerPassword,
-      fullName: 'Bob Viewer',
+      fullName: 'Viewer User',
       role: 'VIEWER',
       isVerified: true,
-      bio: 'Just browsing',
     },
   });
 
-  // Create sample events
-  const events = await Promise.all([
-    prisma.event.upsert({
-      where: { slug: 'annual-photography-workshop-2024' },
-      update: {},
-      create: {
-        name: 'Annual Photography Workshop 2024',
-        slug: 'annual-photography-workshop-2024',
-        description: 'Learn advanced photography techniques from industry experts',
-        category: 'WORKSHOP',
-        accessLevel: 'PUBLIC',
-        startDate: new Date('2024-03-15T10:00:00Z'),
-        endDate: new Date('2024-03-15T17:00:00Z'),
-        location: 'Main Auditorium',
-        clubName: 'Photography Club',
-        createdById: admin.id,
-      },
-    }),
-    prisma.event.upsert({
-      where: { slug: 'spring-cultural-fest-2024' },
-      update: {},
-      create: {
-        name: 'Spring Cultural Fest 2024',
-        slug: 'spring-cultural-fest-2024',
-        description: 'Annual cultural celebration featuring art, music, and dance',
-        category: 'CULTURAL_FEST',
-        accessLevel: 'PUBLIC',
-        startDate: new Date('2024-04-01T09:00:00Z'),
-        endDate: new Date('2024-04-03T21:00:00Z'),
-        location: 'Campus Grounds',
-        clubName: 'Cultural Committee',
-        createdById: photographer.id,
-      },
-    }),
-    prisma.event.upsert({
-      where: { slug: 'photography-club-trip' },
-      update: {},
-      create: {
-        name: 'Photography Club Trip',
-        slug: 'photography-club-trip',
-        description: 'Weekend trip to scenic locations for landscape photography',
-        category: 'TRIP',
-        accessLevel: 'CLUB_ONLY',
-        startDate: new Date('2024-05-10T06:00:00Z'),
-        endDate: new Date('2024-05-12T18:00:00Z'),
-        location: 'Hill Station',
-        clubName: 'Photography Club',
-        createdById: photographer.id,
-      },
-    }),
-  ]);
+  // ── Sample Events ──────────────────────────────────────────────────────────
+  await prisma.event.upsert({
+    where: { slug: 'annual-photography-workshop-2024' },
+    update: {},
+    create: {
+      name: 'Annual Photography Workshop 2024',
+      slug: 'annual-photography-workshop-2024',
+      description: 'Learn advanced photography techniques from industry experts',
+      category: 'WORKSHOP',
+      accessLevel: 'PUBLIC',
+      startDate: new Date('2024-03-15T10:00:00Z'),
+      endDate: new Date('2024-03-15T17:00:00Z'),
+      location: 'Main Auditorium',
+      clubName: 'Photography Club',
+      createdById: admin.id,
+    },
+  });
 
-  // Create sample tags
+  await prisma.event.upsert({
+    where: { slug: 'spring-cultural-fest-2024' },
+    update: {},
+    create: {
+      name: 'Spring Cultural Fest 2024',
+      slug: 'spring-cultural-fest-2024',
+      description: 'Annual cultural celebration featuring art, music, and dance',
+      category: 'CULTURAL_FEST',
+      accessLevel: 'PUBLIC',
+      startDate: new Date('2024-04-01T09:00:00Z'),
+      endDate: new Date('2024-04-03T21:00:00Z'),
+      location: 'Campus Grounds',
+      clubName: 'Cultural Committee',
+      createdById: photographer.id,
+    },
+  });
+
+  await prisma.event.upsert({
+    where: { slug: 'photography-club-trip' },
+    update: {},
+    create: {
+      name: 'Photography Club Trip',
+      slug: 'photography-club-trip',
+      description: 'Weekend trip for landscape photography',
+      category: 'TRIP',
+      accessLevel: 'CLUB_ONLY',
+      startDate: new Date('2024-05-10T06:00:00Z'),
+      endDate: new Date('2024-05-12T18:00:00Z'),
+      location: 'Hill Station',
+      clubName: 'Photography Club',
+      createdById: photographer.id,
+    },
+  });
+
+  // ── Tags ───────────────────────────────────────────────────────────────────
   const tagNames = ['Nature', 'Portrait', 'Landscape', 'Event', 'Group Photo', 'Sports', 'Cultural', 'Workshop'];
   await Promise.all(
     tagNames.map((name) =>
@@ -137,11 +136,13 @@ async function main() {
     )
   );
 
-  console.log('✅ Seed completed!');
-  console.log('Admin login: admin@eventmedia.com / admin123');
-  console.log('Photographer login: photographer@eventmedia.com / photo123');
-  console.log('Member login: member@eventmedia.com / member123');
-  console.log('Viewer login: viewer@eventmedia.com / viewer123');
+  console.log('\n✅ Seed completed!');
+  console.log('──────────────────────────────────────');
+  console.log('ADMIN:        admin@example.com         / admin123');
+  console.log('PHOTOGRAPHER: photographer@example.com  / photo123');
+  console.log('CLUB_MEMBER:  club_m@example.com        / member123');
+  console.log('VIEWER:       viewer@example.com        / viewer123');
+  console.log('──────────────────────────────────────');
 }
 
 main()

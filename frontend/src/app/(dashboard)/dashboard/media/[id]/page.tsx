@@ -231,11 +231,19 @@ export default function MediaDetailPage() {
           <div className="card p-4 space-y-3">
             {media.caption && <p className="text-sm">{media.caption}</p>}
             {media.aiCaption && (
-              <div className="flex items-start gap-2 p-2 bg-primary-50 dark:bg-primary-900/20 rounded-lg">
-                <Tag className="w-4 h-4 text-primary-500 mt-0.5 flex-shrink-0" />
-                <p className="text-xs text-primary-700 dark:text-primary-300">AI: {media.aiCaption}</p>
-              </div>
-            )}
+          <div className="p-4 rounded-xl border border-primary-500/30 bg-primary-500/10">
+            <div className="flex items-center gap-2 mb-2">
+              <Tag className="w-5 h-5 text-primary-400" />
+              <h3 className="font-semibold text-white">
+                AI Description
+              </h3>
+            </div>
+
+            <p className="text-sm md:text-base text-gray-200 leading-relaxed">
+              {media.aiCaption}
+            </p>
+          </div>
+        )}
             <div className="flex flex-wrap gap-1">
               {media.aiTags?.map((tag: any) => (
                 <span

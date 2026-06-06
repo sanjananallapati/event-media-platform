@@ -22,6 +22,7 @@ export async function createEvent(
       endDate,
       location,
       clubName,
+      albumName,
     } = req.body;
 
     const slug = generateUniqueSlug(name);
@@ -52,6 +53,7 @@ export async function createEvent(
         endDate: endDate ? new Date(endDate) : null,
         location,
         clubName,
+        albumName: albumName || null,
         coverImage: coverImageUrl,
         coverKey,
         createdById: req.user!.userId,
@@ -104,6 +106,7 @@ export async function getEvents(
           { name: { contains: search as string, mode: 'insensitive' } },
           { description: { contains: search as string, mode: 'insensitive' } },
           { clubName: { contains: search as string, mode: 'insensitive' } },
+          { albumName: { contains: search as string, mode: 'insensitive' } },
         ],
       }),
     };
@@ -152,6 +155,9 @@ export async function getEventBySlug(
         albums: {
           where: { isActive: true },
           include: {
+            createdBy: {
+              select: { id: true, username: true, fullName: true, avatar: true },
+            },
             _count: { select: { media: true } },
           },
         },
@@ -191,6 +197,7 @@ export async function updateEvent(
       endDate,
       location,
       clubName,
+      albumName,
     } = req.body;
 
     const event = await prisma.event.findUnique({ where: { id } });
@@ -212,7 +219,6 @@ export async function updateEvent(
     let coverKey = event.coverKey;
 
     if (req.file) {
-      // Delete old cover
       if (event.coverKey) {
         await deleteFromS3(event.coverKey);
       }
@@ -239,6 +245,7 @@ export async function updateEvent(
         endDate: endDate ? new Date(endDate) : null,
         location,
         clubName,
+        albumName: albumName !== undefined ? albumName || null : undefined,
         coverImage: coverImageUrl,
         coverKey,
       },
@@ -266,7 +273,12 @@ export async function deleteEvent(
 
     const event = await prisma.event.findUnique({
       where: { id },
-      include: { media: true },
+      include: {
+        media: true,
+        albums: {
+          include: { media: true },
+        },
+      },
     });
 
     if (!event) {
@@ -282,11 +294,34 @@ export async function deleteEvent(
       return;
     }
 
-    // Soft delete
-    await prisma.event.update({
-      where: { id },
-      data: { isActive: false },
-    });
+    // Delete cover image from S3 if exists
+    if (event.coverKey) {
+      try { await deleteFromS3(event.coverKey); } catch (_) {}
+    }
+
+    // Delete all media files from S3
+    for (const m of event.media) {
+      try { await deleteFromS3(m.key); } catch (_) {}
+      if (m.thumbnailKey) {
+        try { await deleteFromS3(m.thumbnailKey); } catch (_) {}
+      }
+    }
+
+    // Delete album cover images from S3
+    for (const album of event.albums) {
+      if (album.coverKey) {
+        try { await deleteFromS3(album.coverKey); } catch (_) {}
+      }
+      for (const m of album.media) {
+        try { await deleteFromS3(m.key); } catch (_) {}
+        if (m.thumbnailKey) {
+          try { await deleteFromS3(m.thumbnailKey); } catch (_) {}
+        }
+      }
+    }
+
+    // Hard delete — cascade handles related records via Prisma schema
+    await prisma.event.delete({ where: { id } });
 
     sendSuccess(res, null, 'Event deleted successfully');
   } catch (error) {

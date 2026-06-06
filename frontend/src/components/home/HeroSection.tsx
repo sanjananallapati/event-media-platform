@@ -27,7 +27,7 @@ export function HeroSection() {
         animate={{ scale: [1, 1.15, 1], opacity: [0.18, 0.28, 0.18] }}
         transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
         className="absolute -top-32 -left-32 w-[600px] h-[600px] rounded-full pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(124,58,237,0.35) 0%, rgba(124,58,237,0.08) 50%, transparent 70%)' }}
+        style={{ background: 'radial-gradient(circle, rgba(124,58,237,0.55) 0%, rgba(124,58,237,0.08) 50%, transparent 70%)' }}
       />
 
       {/* Purple orb — bottom right */}
@@ -35,7 +35,7 @@ export function HeroSection() {
         animate={{ scale: [1, 1.1, 1], opacity: [0.12, 0.2, 0.12] }}
         transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
         className="absolute -bottom-48 -right-48 w-[700px] h-[700px] rounded-full pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(168,85,247,0.25) 0%, rgba(168,85,247,0.06) 50%, transparent 70%)' }}
+        style={{ background: 'radial-gradient(circle, rgba(168,85,247,0.45) 0%, rgba(168,85,247,0.06) 50%, transparent 70%)' }}
       />
 
       {/* Floating dots */}
@@ -46,7 +46,7 @@ export function HeroSection() {
 
       {/* Content */}
       <div className="relative max-w-7xl mx-auto px-6 py-24 flex flex-col items-center text-center">
-        <motion.div variants={containerVariants} initial="hidden" animate="visible" className="max-w-4xl">
+        <motion.div variants={containerVariants} initial="hidden" animate="visible" className="max-w-3xl">
 
           {/* Badge */}
           <motion.div variants={itemVariants} className="mb-8">
@@ -58,7 +58,7 @@ export function HeroSection() {
 
           {/* Headline */}
           <motion.h1 variants={itemVariants}
-            className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight leading-[0.92] mb-6 font-display">
+            className="ttext-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05] mb-6 font-display">
             <span className="text-white">Your Events,</span>
             <br />
             <span className="text-transparent bg-clip-text"

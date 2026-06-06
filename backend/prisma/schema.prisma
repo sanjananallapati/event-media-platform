@@ -140,6 +140,7 @@ model Event {
   endDate     DateTime?
   location    String?
   clubName    String?
+  albumName   String?
   isActive    Boolean       @default(true)
   createdById String
   createdAt   DateTime      @default(now())

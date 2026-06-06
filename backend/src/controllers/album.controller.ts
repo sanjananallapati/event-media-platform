@@ -222,7 +222,10 @@ export async function deleteAlbum(
   try {
     const { id } = req.params;
 
-    const album = await prisma.album.findUnique({ where: { id } });
+    const album = await prisma.album.findUnique({
+      where: { id },
+      include: { media: true },
+    });
     if (!album) {
       sendError(res, 'Album not found', 404);
       return;
@@ -233,12 +236,23 @@ export async function deleteAlbum(
       return;
     }
 
-    await prisma.album.update({
-      where: { id },
-      data: { isActive: false },
-    });
+    // Delete cover from S3
+    if (album.coverKey) {
+      try { await deleteFromS3(album.coverKey); } catch (_) {}
+    }
 
-    sendSuccess(res, null, 'Album deleted');
+    // Delete all media files from S3
+    for (const m of album.media) {
+      try { await deleteFromS3(m.key); } catch (_) {}
+      if (m.thumbnailKey) {
+        try { await deleteFromS3(m.thumbnailKey); } catch (_) {}
+      }
+    }
+
+    // Hard delete album (cascades to collaborators, media relations)
+    await prisma.album.delete({ where: { id } });
+
+    sendSuccess(res, null, 'Album deleted successfully');
   } catch (error) {
     next(error);
   }

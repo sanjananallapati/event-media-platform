@@ -104,7 +104,7 @@ export async function addWatermark(
   }
 ): Promise<Buffer> {
   try {
-    const { fontSize = 24, opacity = 0.7, position = 'bottomRight' } = options || {};
+    const { fontSize = 40, opacity = 0.9, position = 'bottomRight' } = options || {};
 
     const meta = await sharp(buffer).metadata();
     const imgWidth = meta.width || 800;
@@ -128,12 +128,12 @@ export async function addWatermark(
               font-family: Arial, sans-serif; 
               font-size: ${fontSize}px; 
               fill: black;
-              fill-opacity: ${opacity * 0.5};
+              fill-opacity: 0.8;
               font-weight: bold;
             }
           </style>
         </defs>
-        <text x="2" y="${fontSize + 2}" class="shadow">${watermarkText}</text>
+        <text x="4" y="${fontSize + 4}" class="shadow">${watermarkText}</text>
         <text x="0" y="${fontSize}" class="watermark">${watermarkText}</text>
       </svg>
     `;

@@ -653,12 +653,12 @@ export async function downloadMedia(
         const originalBuffer = Buffer.from(arrayBuffer);
 
         // Build watermark text
-        const parts = [];
-        if (media.event?.clubName) parts.push(media.event.clubName);
-        if (media.event?.name) parts.push(media.event.name);
-        if (req.user) parts.push(req.user.role);
+      const parts = [];
 
-        const watermarkText = parts.join(' | ') || 'EventMedia Platform';
+      if (media.event?.clubName) parts.push(media.event.clubName);
+      if (media.event?.name) parts.push(media.event.name);
+
+      const watermarkText = parts.join(' | ') || 'Event Media Platform';
 
         downloadBuffer = await addWatermark(originalBuffer, watermarkText);
       } catch (wmError) {

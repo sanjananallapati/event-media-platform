@@ -212,6 +212,7 @@ export default function MediaDetailPage() {
         </motion.div>
 
         <div className="space-y-4">
+          {/* Uploader card */}
           <div className="card p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden">
@@ -228,32 +229,33 @@ export default function MediaDetailPage() {
             </div>
           </div>
 
+          {/* Info card */}
           <div className="card p-4 space-y-3">
             {media.caption && <p className="text-sm">{media.caption}</p>}
-            {media.aiCaption && (
-          <div className="p-4 rounded-xl border border-primary-500/30 bg-primary-500/10">
-            <div className="flex items-center gap-2 mb-2">
-              <Tag className="w-5 h-5 text-primary-400" />
-              <h3 className="font-semibold text-white">
-                AI Description
-              </h3>
-            </div>
 
-            <p className="text-sm md:text-base text-gray-200 leading-relaxed">
-              {media.aiCaption}
-            </p>
-          </div>
-        )}
+            {media.aiCaption && (
+              <div className="p-2.5 rounded-lg border border-primary-500/30 bg-primary-500/10">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Tag className="w-3.5 h-3.5 text-primary-400" />
+                  <h3 className="text-xs font-semibold text-white">AI Description</h3>
+                </div>
+                <p className="text-xs text-gray-300 leading-snug">
+                  {media.aiCaption}
+                </p>
+              </div>
+            )}
+
             <div className="flex flex-wrap gap-1">
               {media.aiTags?.map((tag: any) => (
                 <span
                   key={tag.id}
-                  className="px-2 py-0.5 rounded-full text-xs bg-secondary-100 dark:bg-secondary-700"
+                  className="px-2 py-0.5 rounded-full text-xs bg-secondary-800/60 text-secondary-400 border border-secondary-700/50"
                 >
                   {tag.name}
                 </span>
               ))}
             </div>
+
             <div className="flex items-center gap-4 text-xs text-secondary-500 pt-2 border-t">
               <span className="flex items-center gap-1">
                 <Eye className="w-3 h-3" /> {media.viewCount} views
@@ -262,6 +264,7 @@ export default function MediaDetailPage() {
                 <Calendar className="w-3 h-3" /> {format(new Date(media.createdAt), 'MMM dd, yyyy')}
               </span>
             </div>
+
             {media.event && (
               <div className="pt-2 border-t">
                 <p className="text-xs text-secondary-500">Event</p>
@@ -270,6 +273,7 @@ export default function MediaDetailPage() {
             )}
           </div>
 
+          {/* Tagged people */}
           {media.userTags && media.userTags.length > 0 && (
             <div className="card p-4">
               <h3 className="text-sm font-medium mb-2">Tagged People</h3>
@@ -290,6 +294,7 @@ export default function MediaDetailPage() {
             </div>
           )}
 
+          {/* Comments */}
           <div className="card p-4">
             <h3 className="text-sm font-medium mb-3">Comments</h3>
             {user && (

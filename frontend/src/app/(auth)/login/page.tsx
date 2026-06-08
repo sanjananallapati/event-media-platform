@@ -7,13 +7,6 @@ import { useAuthStore } from '@/store/auth.store';
 import toast from 'react-hot-toast';
 import { Eye, EyeOff, Camera, ArrowRight, Lock, Mail } from 'lucide-react';
 
-const DEMO_ACCOUNTS = [
-  { label: 'Admin',       email: 'admin@example.com',        password: 'admin123',  color: 'text-red-400' },
-  { label: 'Photographer',email: 'photographer@example.com', password: 'photo123',  color: 'text-blue-400' },
-  { label: 'Member',      email: 'club_m@example.com',       password: 'member123', color: 'text-green-400' },
-  { label: 'Viewer',      email: 'viewer@example.com',       password: 'viewer123', color: 'text-gray-400' },
-];
-
 export default function LoginPage() {
   const [email, setEmail]           = useState('');
   const [password, setPassword]     = useState('');
@@ -46,11 +39,6 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const fillDemo = (acc: typeof DEMO_ACCOUNTS[0]) => {
-    setEmail(acc.email);
-    setPassword(acc.password);
   };
 
   return (
@@ -193,28 +181,6 @@ export default function LoginPage() {
               Create one
             </Link>
           </p>
-
-          {/* ── Demo accounts — clickable ── */}
-          <div className="border border-[#1e1e2e] rounded-xl p-4 space-y-3">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-              Demo accounts — click to fill
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              {DEMO_ACCOUNTS.map((acc) => (
-                <button
-                  key={acc.email}
-                  type="button"
-                  onClick={() => fillDemo(acc)}
-                  className="text-left px-3 py-2 rounded-lg bg-[#111118] border border-[#2a2a3a] hover:border-violet-500/50 transition-all group"
-                >
-                  <p className={`text-xs font-semibold ${acc.color}`}>{acc.label}</p>
-                  <p className="text-xs text-gray-600 truncate group-hover:text-gray-400 transition-colors">
-                    {acc.email}
-                  </p>
-                </button>
-              ))}
-            </div>
-          </div>
 
         </div>
       </div>

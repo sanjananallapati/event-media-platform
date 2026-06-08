@@ -61,7 +61,15 @@ export function StatsSection() {
       <div className="relative max-w-7xl mx-auto px-6">
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 0.6 }} className="text-center mb-14">
-          <span className="inline-flex items-center px-3.5 py-1.5 rounded-full border border-violet-500/20 bg-violet-500/8 text-violet-400 text-xs font-semibold tracking-widest uppercase mb-5">
+          <span
+            className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-widest uppercase mb-5"
+            style={{
+              background: 'rgba(109,40,217,0.11)',
+              border: '1px solid rgba(167,139,250,0.26)',
+              color: '#c4b5fd',
+              boxShadow: '0 0 18px rgba(109,40,217,0.16)',
+            }}
+          >
             By the Numbers
           </span>
           <h2 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight font-display">
@@ -69,7 +77,7 @@ export function StatsSection() {
             <span className="text-transparent bg-clip-text" style={{ backgroundImage: 'linear-gradient(135deg, #a78bfa, #7c3aed)' }}>thousands</span>
             {' '}of members
           </h2>
-          <p className="text-[#71717A] mt-3 max-w-xl mx-auto">Real numbers from a growing community of clubs and event organisers.</p>
+          <p className="text-[#6B6B85] mt-3 max-w-xl mx-auto">Real numbers from a growing community of clubs and event organisers.</p>
         </motion.div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
           {stats.map((stat, i) => <StatCard key={stat.label} stat={stat} index={i} />)}

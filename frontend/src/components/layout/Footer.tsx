@@ -70,18 +70,45 @@ export function Footer() {
         </div>
 
         {/* CTA banner */}
-        <div className="relative rounded-2xl border border-violet-500/20 bg-violet-500/5 p-8 mb-12 overflow-hidden">
-          <div className="absolute inset-0 pointer-events-none rounded-2xl"
-            style={{ background: 'radial-gradient(ellipse at right, rgba(124,58,237,0.08), transparent 60%)' }} />
-          <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <h3 className="text-white font-bold text-xl mb-1 font-display">Ready to capture your events?</h3>
-              <p className="text-[#71717A] text-sm">Join thousands of clubs already using EventMedia. Free to get started.</p>
+        <div
+          className="relative mb-12 p-[1px] rounded-2xl"
+          style={{
+            background:
+              'linear-gradient(135deg, rgba(124,58,237,0.45) 0%, rgba(99,102,241,0.18) 50%, rgba(168,85,247,0.38) 100%)',
+          }}
+        >
+          <div
+            className="relative rounded-[15px] p-8 overflow-hidden"
+            style={{ background: 'rgba(10,8,22,0.92)' }}
+          >
+            <div
+              className="absolute inset-0 pointer-events-none rounded-[15px]"
+              style={{
+                background:
+                  'radial-gradient(ellipse at right, rgba(124,58,237,0.09), transparent 60%)',
+              }}
+            />
+            <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-white font-bold text-xl mb-1 font-display">
+                  Ready to capture your events?
+                </h3>
+                <p className="text-[#6B6B85] text-sm">
+                  Join thousands of clubs already using EventMedia. Free to get started.
+                </p>
+              </div>
+              <Link
+                href="/register"
+                className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-white transition-all duration-200"
+                style={{
+                  background: 'linear-gradient(135deg, #5b21b6 0%, #7c3aed 48%, #8b5cf6 100%)',
+                  boxShadow:
+                    '0 0 0 1px rgba(167,139,250,0.2), 0 4px 20px rgba(109,40,217,0.4)',
+                }}
+              >
+                Get Started Free
+              </Link>
             </div>
-            <Link href="/register"
-              className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-violet-600 text-white font-semibold text-sm hover:bg-violet-500 transition-all duration-200 shadow-[0_0_20px_rgba(124,58,237,0.3)] hover:shadow-[0_0_30px_rgba(124,58,237,0.5)]">
-              Get Started Free
-            </Link>
           </div>
         </div>
 

@@ -21,11 +21,12 @@ import {
   LayoutGrid,
   UserCog,
   RefreshCw,
+  Trash2,
 } from 'lucide-react';
 import { format } from 'date-fns';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Tab = 'overview' | 'role-requests' | 'manage-users' | 'assign-photographers';
+type Tab = 'overview' | 'role-requests' | 'manage-users';
 type RequestFilter = 'PENDING' | 'APPROVED' | 'REJECTED';
 
 interface Stats {
@@ -212,14 +213,28 @@ export default function AdminPage() {
     }
   };
 
+  const handleDeleteUser = async (userId: string, username: string) => {
+    if (!confirm(`Are you sure you want to remove @${username}? This action cannot be undone.`)) return;
+    setActionLoading(userId + '-delete');
+    try {
+      await api.delete(`/users/${userId}`);
+      toast.success(`@${username} has been removed`);
+      fetchAllUsers();
+      fetchStats();
+    } catch (e: any) {
+      toast.error(e?.response?.data?.error || 'Failed to remove user');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   if (!user || user.role !== 'ADMIN') return null;
 
-  // ── Tabs config
+  // ── Tabs config (Assign Photographers removed)
   const tabs: { id: Tab; label: string; icon: React.ElementType }[] = [
     { id: 'overview', label: 'Overview', icon: LayoutGrid },
     { id: 'role-requests', label: 'Role Requests', icon: Shield },
     { id: 'manage-users', label: 'Manage Users', icon: UserCog },
-    { id: 'assign-photographers', label: 'Assign Photographers', icon: Camera },
   ];
 
   return (
@@ -509,7 +524,7 @@ export default function AdminPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-[#1e1e2e]">
-                      {['User', 'Joined', 'Role', 'Change Role'].map((h) => (
+                      {['User', 'Joined', 'Role', 'Change Role', 'Actions'].map((h) => (
                         <th
                           key={h}
                           className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider"
@@ -550,11 +565,28 @@ export default function AdminPage() {
                             <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500 pointer-events-none" />
                           </div>
                         </td>
+                        <td className="px-6 py-4">
+                          {u.role !== 'ADMIN' && (
+                            <button
+                              onClick={() => handleDeleteUser(u.id, u.username)}
+                              disabled={actionLoading === u.id + '-delete'}
+                              title="Remove user"
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600/10 hover:bg-red-600/25 text-red-400 hover:text-red-300 text-xs font-medium border border-red-600/20 hover:border-red-600/40 transition-all disabled:opacity-40"
+                            >
+                              {actionLoading === u.id + '-delete' ? (
+                                <RefreshCw className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <Trash2 className="w-3 h-3" />
+                              )}
+                              Remove
+                            </button>
+                          )}
+                        </td>
                       </tr>
                     ))}
                     {allUsers.length === 0 && (
                       <tr>
-                        <td colSpan={4} className="px-6 py-8 text-center text-sm text-gray-500">
+                        <td colSpan={5} className="px-6 py-8 text-center text-sm text-gray-500">
                           No users found.
                         </td>
                       </tr>
@@ -563,17 +595,6 @@ export default function AdminPage() {
                 </table>
               </div>
             </div>
-          </div>
-        )}
-
-        {/* ── ASSIGN PHOTOGRAPHERS TAB ─────────────────────────────── */}
-        {tab === 'assign-photographers' && (
-          <div className="rounded-2xl border bg-[#111118] border-[#1e1e2e] p-8 text-center space-y-3">
-            <Camera className="w-10 h-10 text-violet-400 mx-auto" />
-            <h3 className="font-semibold text-white">Photographer Assignment</h3>
-            <p className="text-sm text-gray-400 max-w-sm mx-auto">
-              This section allows assigning photographers to specific events. Feature coming soon.
-            </p>
           </div>
         )}
       </div>

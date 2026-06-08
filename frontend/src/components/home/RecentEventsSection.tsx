@@ -136,7 +136,15 @@ export function RecentEventsSection() {
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-80px' }}
           transition={{ duration: 0.6 }} className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-12">
           <div>
-            <span className="inline-flex items-center px-3.5 py-1.5 rounded-full border border-violet-500/20 bg-violet-500/8 text-violet-400 text-xs font-semibold tracking-widest uppercase mb-4">
+            <span
+              className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-widest uppercase mb-4"
+              style={{
+                background: 'rgba(109,40,217,0.11)',
+                border: '1px solid rgba(167,139,250,0.26)',
+                color: '#c4b5fd',
+                boxShadow: '0 0 18px rgba(109,40,217,0.16)',
+              }}
+            >
               Latest Activity
             </span>
             <h2 className="text-4xl md:text-5xl font-extrabold text-white leading-tight tracking-tight font-display">Recent Events</h2>

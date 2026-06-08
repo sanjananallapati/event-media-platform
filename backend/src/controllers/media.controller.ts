@@ -783,3 +783,106 @@ export async function untagUser(
     next(error);
   }
 }
+
+/**
+ * GET /media/gallery
+ * Public, paginated gallery feed for the infinite-scroll Gallery page.
+ *
+ * Visibility rule (privacy-safe — mirrors the canAccessAlbum / searchMedia fix):
+ *   A media item is shown ONLY when it is fully public, i.e.
+ *     - media.accessLevel === PUBLIC, AND
+ *     - it has no event   OR its event is PUBLIC & active, AND
+ *     - it has no album   OR its album is PUBLIC & active.
+ *   This prevents a PUBLIC media/album that lives inside a PRIVATE event
+ *   from leaking into the global feed.
+ *
+ * Query params: page, limit, type (IMAGE|VIDEO), q (caption / name / tag / #hashtag)
+ */
+export async function getGalleryMedia(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { page = '1', limit = '12', type, q } = req.query;
+
+    const pageNum = Math.max(1, parseInt(page as string) || 1);
+    const limitNum = Math.min(50, Math.max(1, parseInt(limit as string) || 12));
+    const skip = (pageNum - 1) * limitNum;
+
+    // Validate optional media-type filter against the enum.
+    const typeFilter =
+      type === MediaType.IMAGE || type === MediaType.VIDEO
+        ? (type as MediaType)
+        : undefined;
+
+    // Search term: strip a leading "#" so "#chart" matches the tag "chart".
+    const term = (q as string)?.trim().replace(/^#/, '') || '';
+
+    const where: Record<string, unknown> = {
+      isActive: true,
+      accessLevel: AccessLevel.PUBLIC,
+      ...(typeFilter && { type: typeFilter }),
+      AND: [
+        // event is absent OR public+active
+        {
+          OR: [
+            { eventId: null },
+            { event: { accessLevel: AccessLevel.PUBLIC, isActive: true } },
+          ],
+        },
+        // album is absent OR public+active
+        {
+          OR: [
+            { albumId: null },
+            { album: { accessLevel: AccessLevel.PUBLIC, isActive: true } },
+          ],
+        },
+        // free-text search across caption / AI caption / filename / tags
+        ...(term
+          ? [
+              {
+                OR: [
+                  { caption: { contains: term, mode: 'insensitive' } },
+                  { aiCaption: { contains: term, mode: 'insensitive' } },
+                  { originalName: { contains: term, mode: 'insensitive' } },
+                  { tags: { some: { name: { contains: term, mode: 'insensitive' } } } },
+                  { aiTags: { some: { name: { contains: term, mode: 'insensitive' } } } },
+                ],
+              },
+            ]
+          : []),
+      ],
+    };
+
+    const userId = req.user?.userId;
+
+    const [media, total] = await Promise.all([
+      prisma.media.findMany({
+        where,
+        skip,
+        take: limitNum,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          uploader: {
+            select: { id: true, username: true, fullName: true, avatar: true },
+          },
+          event: { select: { id: true, name: true, slug: true } },
+          tags: { select: { id: true, name: true } },
+          aiTags: { select: { id: true, name: true } },
+          _count: { select: { likes: true, comments: true, favourites: true } },
+          // Per-user state so the feed can render the correct liked/saved icons.
+          ...(userId && {
+            likes: { where: { userId }, select: { id: true } },
+            favourites: { where: { userId }, select: { id: true } },
+          }),
+        },
+      }),
+      prisma.media.count({ where }),
+    ]);
+
+    sendPaginated(res, media, pageNum, limitNum, total);
+  } catch (error) {
+    next(error);
+  }
+}

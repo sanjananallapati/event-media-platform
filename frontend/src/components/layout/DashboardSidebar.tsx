@@ -21,11 +21,13 @@ import {
   X,
   Bell,
   Scan,
+  GalleryVertical,
 } from 'lucide-react';
 import clsx from 'clsx';
 
 const navItems = [
   { href: '/dashboard', icon: Home, label: 'Home', exact: true },
+  { href: '/dashboard/gallery', icon: GalleryVertical, label: 'Gallery' },
   { href: '/dashboard/events', icon: Calendar, label: 'Events' },
   { href: '/dashboard/search', icon: Search, label: 'Search' },
   { href: '/dashboard/favourites', icon: Heart, label: 'Favourites' },

@@ -161,4 +161,11 @@
 
   .animate-float       { animation: float 6s ease-in-out infinite; }
   .animate-pulse-glow  { animation: pulse-glow 3s ease-in-out infinite; }
+
+  /* Shimmering skeleton fill — used by the Gallery feed loaders. */
+  .shimmer-bg {
+    background: linear-gradient(100deg, #161B22 30%, #1C2230 50%, #161B22 70%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s linear infinite;
+  }
 }

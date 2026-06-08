@@ -13,6 +13,7 @@ import {
   getComments,
   toggleFavourite,
   getFavourites,
+  getGalleryMedia,
   shareMedia,
   downloadMedia,
   tagUser,
@@ -27,6 +28,8 @@ const upload = multer({
 const router = Router();
 
 router.get('/favourites', authenticate, getFavourites);
+// NOTE: must be registered BEFORE '/:id' or Express treats "gallery" as an :id.
+router.get('/gallery', optionalAuth, getGalleryMedia);
 router.get('/:id', optionalAuth, getMediaById);
 router.get('/:id/comments', optionalAuth, getComments);
 router.get('/:id/download', optionalAuth, downloadMedia);

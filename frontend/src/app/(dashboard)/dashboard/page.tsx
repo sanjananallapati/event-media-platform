@@ -34,7 +34,7 @@ export default function DashboardPage() {
     { label: 'Likes Received', value: analytics?.stats?.receivedLikes ?? 0, icon: Heart, color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/20' },
     { label: 'Comments', value: analytics?.stats?.receivedComments ?? 0, icon: TrendingUp, color: 'text-green-400', bg: 'bg-green-500/10 border-green-500/20' },
     { label: 'Downloads', value: analytics?.stats?.downloads ?? 0, icon: Download, color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/20' },
-    { label: 'Face Matches', value: analytics?.stats?.faceMatches ?? 0, icon: Users, color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20' },
+    
   ];
 
   const quickActions = [
@@ -77,7 +77,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         {stats.map((stat) => (
           <div key={stat.label} className="card p-5 space-y-3">
             <div className={`w-9 h-9 rounded-xl ${stat.bg} border flex items-center justify-center`}>

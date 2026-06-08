@@ -12,29 +12,19 @@ export default function UploadPage() {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [eventId, setEventId] = useState('');
-  const [albumId, setAlbumId] = useState('');
   const [accessLevel, setAccessLevel] = useState('PUBLIC');
   const [caption, setCaption] = useState('');
   const [events, setEvents] = useState<any[]>([]);
-  const [albums, setAlbums] = useState<any[]>([]);
   const [uploadResults, setUploadResults] = useState<any[]>([]);
 
   useEffect(() => {
     fetchEvents();
-    fetchAlbums();
   }, []);
 
   const fetchEvents = async () => {
     try {
       const res = await api.get('/events', { params: { limit: 50 } });
       setEvents(res.data.data || []);
-    } catch {}
-  };
-
-  const fetchAlbums = async () => {
-    try {
-      const res = await api.get('/albums', { params: { limit: 50 } });
-      setAlbums(res.data.data || []);
     } catch {}
   };
 
@@ -70,7 +60,6 @@ export default function UploadPage() {
     const formData = new FormData();
     files.forEach((file) => formData.append('files', file));
     if (eventId) formData.append('eventId', eventId);
-    if (albumId) formData.append('albumId', albumId);
     formData.append('accessLevel', accessLevel);
     if (caption) formData.append('caption', caption);
 
@@ -104,7 +93,7 @@ export default function UploadPage() {
 
       {/* Options */}
       <div className="card p-6 space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium mb-1">Event (optional)</label>
             <select
@@ -116,21 +105,6 @@ export default function UploadPage() {
               {events.map((ev) => (
                 <option key={ev.id} value={ev.id}>
                   {ev.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Album (optional)</label>
-            <select
-              value={albumId}
-              onChange={(e) => setAlbumId(e.target.value)}
-              className="input"
-            >
-              <option value="">No Album</option>
-              {albums.map((al) => (
-                <option key={al.id} value={al.id}>
-                  {al.name}
                 </option>
               ))}
             </select>

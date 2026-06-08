@@ -36,16 +36,6 @@ export function Navbar() {
           </span>
         </Link>
 
-        {/* Desktop Nav Links */}
-        <div className="hidden md:flex items-center gap-1">
-          <Link href="/events" className="px-4 py-2 rounded-lg text-sm font-medium text-[#A1A1AA] hover:text-white hover:bg-white/5 transition-all duration-200">
-            Events
-          </Link>
-          <Link href="/explore" className="px-4 py-2 rounded-lg text-sm font-medium text-[#A1A1AA] hover:text-white hover:bg-white/5 transition-all duration-200">
-            Explore
-          </Link>
-        </div>
-
         {/* Desktop Auth */}
         <div className="hidden md:flex items-center gap-3">
           {isAuthenticated ? (
@@ -86,25 +76,17 @@ export function Navbar() {
             transition={{ duration: 0.2, ease: 'easeOut' }}
             className="md:hidden overflow-hidden bg-[#0D1117]/95 backdrop-blur-xl border-b border-[#27272A]"
           >
-            <div className="max-w-7xl mx-auto px-6 py-4 space-y-1">
-              <Link href="/events" className="flex items-center px-4 py-2.5 rounded-lg text-sm text-[#A1A1AA] hover:text-white hover:bg-white/5 transition-all" onClick={() => setMobileMenuOpen(false)}>
-                Events
-              </Link>
-              <Link href="/explore" className="flex items-center px-4 py-2.5 rounded-lg text-sm text-[#A1A1AA] hover:text-white hover:bg-white/5 transition-all" onClick={() => setMobileMenuOpen(false)}>
-                Explore
-              </Link>
-              <div className="pt-3 mt-3 border-t border-[#27272A] space-y-2">
-                {isAuthenticated ? (
-                  <Link href="/dashboard" className="btn-primary w-full" onClick={() => setMobileMenuOpen(false)}>
-                    <LayoutDashboard className="w-4 h-4" /> Dashboard
-                  </Link>
-                ) : (
-                  <>
-                    <Link href="/login" className="btn-secondary w-full" onClick={() => setMobileMenuOpen(false)}>Login</Link>
-                    <Link href="/register" className="btn-primary w-full" onClick={() => setMobileMenuOpen(false)}>Sign Up</Link>
-                  </>
-                )}
-              </div>
+            <div className="max-w-7xl mx-auto px-6 py-4 space-y-2">
+              {isAuthenticated ? (
+                <Link href="/dashboard" className="btn-primary w-full" onClick={() => setMobileMenuOpen(false)}>
+                  <LayoutDashboard className="w-4 h-4" /> Dashboard
+                </Link>
+              ) : (
+                <>
+                  <Link href="/login" className="btn-secondary w-full" onClick={() => setMobileMenuOpen(false)}>Login</Link>
+                  <Link href="/register" className="btn-primary w-full" onClick={() => setMobileMenuOpen(false)}>Sign Up</Link>
+                </>
+              )}
             </div>
           </motion.div>
         )}

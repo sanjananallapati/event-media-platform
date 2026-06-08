@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth.store';
 import { DashboardSidebar } from '@/components/layout/DashboardSidebar';
 import { DashboardHeader } from '@/components/layout/DashboardHeader';
+import clsx from 'clsx';
 
 export default function DashboardLayout({
   children,
@@ -13,14 +14,25 @@ export default function DashboardLayout({
 }) {
   const { isAuthenticated, checkAuth } = useAuthStore();
   const router = useRouter();
-  // Three states: 'checking' | 'authenticated' | 'unauthenticated'
   const [authState, setAuthState] = useState<'checking' | 'authenticated' | 'unauthenticated'>('checking');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Restore sidebar preference from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('sidebar-collapsed');
+    if (stored === 'true') setSidebarCollapsed(true);
+  }, []);
+
+  const handleToggleSidebar = () => {
+    const next = !sidebarCollapsed;
+    setSidebarCollapsed(next);
+    localStorage.setItem('sidebar-collapsed', String(next));
+  };
 
   useEffect(() => {
     const verify = async () => {
       try {
         await checkAuth();
-        // After checkAuth, read the fresh store state
         const state = useAuthStore.getState();
         if (state.isAuthenticated) {
           setAuthState('authenticated');
@@ -34,7 +46,6 @@ export default function DashboardLayout({
       }
     };
 
-    // If already authenticated (e.g. persisted token was valid), skip checkAuth
     if (isAuthenticated) {
       setAuthState('authenticated');
     } else {
@@ -57,8 +68,14 @@ export default function DashboardLayout({
 
   return (
     <div className="min-h-screen flex bg-[#0a0a0f]">
-      <DashboardSidebar />
-      <div className="flex-1 flex flex-col min-h-screen lg:ml-64">
+      <DashboardSidebar collapsed={sidebarCollapsed} onToggle={handleToggleSidebar} />
+      {/* Main content — margin mirrors sidebar width and animates in sync */}
+      <div
+        className={clsx(
+          'flex-1 flex flex-col min-h-screen transition-[margin-left] duration-300 ease-in-out',
+          sidebarCollapsed ? 'lg:ml-[68px]' : 'lg:ml-64'
+        )}
+      >
         <DashboardHeader />
         <main className="flex-1 p-4 lg:p-6 overflow-auto">
           {children}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { api } from '@/lib/api';
@@ -14,39 +14,64 @@ export default function SearchPage() {
   const router = useRouter();
   const [query, setQuery] = useState(searchParams.get('q') || '');
   const [type, setType] = useState(searchParams.get('type') || 'all');
-  const [results, setResults] = useState<any>({});
+  const [results, setResults] = useState<any>(null); // null = no search attempted yet
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const q = searchParams.get('q');
-    if (q) {
-      setQuery(q);
-      performSearch(q, type);
-    }
-  }, [searchParams]);
+  // Prevent double-execution when handleSubmit and useEffect both fire for the same query
+  const lastSearchKeyRef = useRef('');
 
-  const performSearch = async (q: string, searchType: string) => {
+  const performSearch = useCallback(async (q: string, searchType: string) => {
     if (!q.trim()) return;
+
+    const key = `${q.trim()}|${searchType}`;
+    if (key === lastSearchKeyRef.current) return; // already running this exact search
+    lastSearchKeyRef.current = key;
+
     setLoading(true);
     try {
       const response = await api.get('/search', {
-        params: { q, type: searchType, limit: 20 },
+        params: { q: q.trim(), type: searchType, limit: 20 },
       });
       setResults(response.data.data);
     } catch (error) {
-      toast.error('Search failed');
+      toast.error('Search failed. Please try again.');
+      setResults({});
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Handle URL-driven searches (initial page load with params, back/forward navigation)
+  useEffect(() => {
+    const q = searchParams.get('q');
+    const t = searchParams.get('type') || 'all';
+    if (q) {
+      setQuery(q);
+      setType(t);
+      performSearch(q, t);
+    }
+  }, [searchParams, performSearch]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (query.trim()) {
-      router.push(`/dashboard/search?q=${encodeURIComponent(query)}&type=${type}`);
-      performSearch(query, type);
-    }
+    if (!query.trim()) return;
+
+    // Reset the dedup key so re-submitting the same query works
+    lastSearchKeyRef.current = '';
+
+    // Update URL (for bookmarking / back-navigation), which also triggers the useEffect.
+    // performSearch is guarded by lastSearchKeyRef so it only runs once.
+    router.push(`/dashboard/search?q=${encodeURIComponent(query.trim())}&type=${type}`);
+    performSearch(query, type);
   };
+
+  const hasResults =
+    results !== null &&
+    (results.media?.items?.length > 0 ||
+      results.events?.items?.length > 0 ||
+      results.users?.items?.length > 0);
+
+  const hasNoResults = results !== null && !loading && !hasResults;
 
   return (
     <div className="space-y-6">
@@ -65,6 +90,7 @@ export default function SearchPage() {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search for anything..."
             className="input pl-10"
+            autoFocus
           />
         </div>
         <select
@@ -77,7 +103,7 @@ export default function SearchPage() {
           <option value="events">Events</option>
           <option value="users">Users</option>
         </select>
-        <button type="submit" className="btn-primary">
+        <button type="submit" className="btn-primary" disabled={loading}>
           Search
         </button>
       </form>
@@ -87,10 +113,17 @@ export default function SearchPage() {
         <div className="flex items-center justify-center h-32">
           <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
         </div>
+      ) : results === null ? (
+        /* Initial empty state — no search has been run yet */
+        <div className="card p-12 text-center text-secondary-400">
+          <Search className="w-12 h-12 mx-auto mb-4 opacity-40" />
+          <p className="text-lg font-medium">Start typing to search</p>
+          <p className="text-sm mt-1">Find media, events, and users across the platform</p>
+        </div>
       ) : (
         <div className="space-y-8">
           {/* Media Results */}
-          {results.media && results.media.items?.length > 0 && (
+          {results.media?.items?.length > 0 && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               <h2 className="text-lg font-medium mb-4 flex items-center gap-2">
                 <Image className="w-5 h-5" />
@@ -101,7 +134,7 @@ export default function SearchPage() {
           )}
 
           {/* Events Results */}
-          {results.events && results.events.items?.length > 0 && (
+          {results.events?.items?.length > 0 && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
               <h2 className="text-lg font-medium mb-4 flex items-center gap-2">
                 <Calendar className="w-5 h-5" />
@@ -116,7 +149,7 @@ export default function SearchPage() {
           )}
 
           {/* Users Results */}
-          {results.users && results.users.items?.length > 0 && (
+          {results.users?.items?.length > 0 && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
               <h2 className="text-lg font-medium mb-4 flex items-center gap-2">
                 <User className="w-5 h-5" />
@@ -135,7 +168,9 @@ export default function SearchPage() {
                     <div>
                       <p className="font-medium">{user.fullName}</p>
                       <p className="text-sm text-secondary-500">@{user.username}</p>
-                      <p className="text-xs text-secondary-400">{user._count?.mediaUploads || 0} uploads</p>
+                      <p className="text-xs text-secondary-400">
+                        {user._count?.mediaUploads || 0} uploads
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -144,19 +179,15 @@ export default function SearchPage() {
           )}
 
           {/* No Results */}
-          {query &&
-            !loading &&
-            (!results.media?.items?.length &&
-              !results.events?.items?.length &&
-              !results.users?.items?.length) && (
-              <div className="card p-12 text-center">
-                <Search className="w-12 h-12 mx-auto text-secondary-400 mb-4" />
-                <h3 className="text-lg font-medium">No results found</h3>
-                <p className="text-secondary-500 mt-1">
-                  Try different keywords or filters
-                </p>
-              </div>
-            )}
+          {hasNoResults && (
+            <div className="card p-12 text-center">
+              <Search className="w-12 h-12 mx-auto text-secondary-400 mb-4" />
+              <h3 className="text-lg font-medium">No results found</h3>
+              <p className="text-secondary-500 mt-1">
+                Try different keywords or filters
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>

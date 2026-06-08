@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
+import { TagPeopleModal } from '@/components/media/TagPeopleModal';
 import {
   Heart,
   MessageCircle,
@@ -18,6 +19,7 @@ import {
   Calendar,
   User,
   Trash2,
+  X,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
@@ -33,6 +35,7 @@ export default function MediaDetailPage() {
   const [liked, setLiked] = useState(false);
   const [favourited, setFavourited] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+  const [showTagModal, setShowTagModal] = useState(false);
 
   useEffect(() => {
     fetchMedia();
@@ -116,6 +119,32 @@ export default function MediaDetailPage() {
     }
   };
 
+  const handleTagged = (newTag: any) => {
+    setMedia((prev: any) => {
+      const existing = prev.userTags || [];
+      if (existing.some((t: any) => t.taggedUser?.id === newTag.taggedUser?.id)) {
+        return prev;
+      }
+      return { ...prev, userTags: [...existing, newTag] };
+    });
+  };
+
+  const handleUntag = async (tag: any) => {
+    const taggedUserId = tag.taggedUser?.id || tag.taggedUserId;
+    try {
+      await api.delete(`/media/${id}/tag/${taggedUserId}`);
+      setMedia((prev: any) => ({
+        ...prev,
+        userTags: (prev.userTags || []).filter(
+          (t: any) => (t.taggedUser?.id || t.taggedUserId) !== taggedUserId
+        ),
+      }));
+      toast.success('Tag removed');
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || 'Failed to remove tag');
+    }
+  };
+
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this media?')) return;
     try {
@@ -192,6 +221,15 @@ export default function MediaDetailPage() {
               >
                 <Share2 className="w-6 h-6" />
               </button>
+              {user && (
+                <button
+                  onClick={() => setShowTagModal(true)}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-[#27272A] px-3 py-1.5 text-sm font-medium text-secondary-400 hover:text-white hover:border-primary-500/60 hover:bg-primary-500/10 transition-colors"
+                >
+                  <Tag className="w-4 h-4" />
+                  Tag People
+                </button>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -276,20 +314,50 @@ export default function MediaDetailPage() {
           {/* Tagged people */}
           {media.userTags && media.userTags.length > 0 && (
             <div className="card p-4">
-              <h3 className="text-sm font-medium mb-2">Tagged People</h3>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium">Tagged People</h3>
+                {user && (
+                  <button
+                    onClick={() => setShowTagModal(true)}
+                    className="text-xs font-medium text-primary-400 hover:text-primary-300"
+                  >
+                    + Tag
+                  </button>
+                )}
+              </div>
               <div className="space-y-2">
-                {media.userTags.map((tag: any) => (
-                  <div key={tag.id} className="flex items-center gap-2 text-sm">
-                    <div className="w-6 h-6 rounded-full bg-secondary-200 flex items-center justify-center overflow-hidden">
-                      {tag.taggedUser?.avatar ? (
-                        <img src={tag.taggedUser.avatar} alt="" className="w-6 h-6 object-cover" />
-                      ) : (
-                        <User className="w-3 h-3" />
+                {media.userTags.map((tag: any) => {
+                  const canRemoveTag =
+                    isOwner ||
+                    tag.taggerUserId === user?.userId ||
+                    tag.taggedUser?.id === user?.userId;
+                  return (
+                    <div
+                      key={tag.id}
+                      className="group flex items-center gap-2 text-sm"
+                    >
+                      <div className="w-6 h-6 rounded-full bg-secondary-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+                        {tag.taggedUser?.avatar ? (
+                          <img src={tag.taggedUser.avatar} alt="" className="w-6 h-6 object-cover" />
+                        ) : (
+                          <User className="w-3 h-3" />
+                        )}
+                      </div>
+                      <span className="flex-1 truncate">
+                        {tag.taggedUser?.fullName || tag.taggedUser?.username}
+                      </span>
+                      {canRemoveTag && (
+                        <button
+                          onClick={() => handleUntag(tag)}
+                          className="text-secondary-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                          aria-label="Remove tag"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
                       )}
                     </div>
-                    <span>{tag.taggedUser?.fullName || tag.taggedUser?.username}</span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -343,6 +411,20 @@ export default function MediaDetailPage() {
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {showTagModal && (
+          <TagPeopleModal
+            mediaId={id as string}
+            existingTagIds={(media.userTags || []).map(
+              (t: any) => t.taggedUser?.id || t.taggedUserId
+            )}
+            currentUserId={user?.userId}
+            onClose={() => setShowTagModal(false)}
+            onTagged={handleTagged}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

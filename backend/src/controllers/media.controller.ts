@@ -719,9 +719,14 @@ export async function tagUser(
       where: { mediaId_taggedUserId: { mediaId: id, taggedUserId } },
       create: { mediaId: id, taggedUserId, taggerUserId },
       update: {},
+      include: {
+        taggedUser: {
+          select: { id: true, username: true, fullName: true, avatar: true },
+        },
+      },
     });
 
-    // Notify tagged user
+    // Notify tagged user (createNotification no-ops when tagging yourself)
     await createNotification({
       type: 'TAG',
       message: 'tagged you in a photo',
@@ -731,6 +736,49 @@ export async function tagUser(
     });
 
     sendSuccess(res, tag, 'User tagged successfully');
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function untagUser(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const { id, taggedUserId } = req.params;
+    const requesterId = req.user!.userId;
+
+    const [media, tag] = await Promise.all([
+      prisma.media.findUnique({ where: { id } }),
+      prisma.mediaTag.findUnique({
+        where: { mediaId_taggedUserId: { mediaId: id, taggedUserId } },
+      }),
+    ]);
+
+    if (!media || !tag) {
+      sendError(res, 'Tag not found', 404);
+      return;
+    }
+
+    // Allowed: whoever created the tag, the tagged person, the media owner, or an admin
+    const canRemove =
+      tag.taggerUserId === requesterId ||
+      tag.taggedUserId === requesterId ||
+      media.uploaderId === requesterId ||
+      req.user!.role === 'ADMIN';
+
+    if (!canRemove) {
+      sendError(res, 'Not authorized to remove this tag', 403);
+      return;
+    }
+
+    await prisma.mediaTag.delete({
+      where: { mediaId_taggedUserId: { mediaId: id, taggedUserId } },
+    });
+
+    sendSuccess(res, { mediaId: id, taggedUserId }, 'Tag removed');
   } catch (error) {
     next(error);
   }

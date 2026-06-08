@@ -16,6 +16,7 @@ import {
   shareMedia,
   downloadMedia,
   tagUser,
+  untagUser,
 } from '../controllers/media.controller';
 
 const upload = multer({
@@ -61,5 +62,7 @@ router.post(
   ]),
   tagUser
 );
+
+router.delete('/:id/tag/:taggedUserId', authenticate, untagUser);
 
 export default router;

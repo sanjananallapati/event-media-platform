@@ -104,37 +104,79 @@ export async function addWatermark(
   }
 ): Promise<Buffer> {
   try {
-    const { fontSize = 40, opacity = 0.9, position = 'bottomRight' } = options || {};
+    const { opacity = 0.95, position = 'bottomRight' } = options || {};
 
     const meta = await sharp(buffer).metadata();
     const imgWidth = meta.width || 800;
     const imgHeight = meta.height || 600;
 
-    const svgWidth = Math.min(imgWidth * 0.6, 600);
-    const svgHeight = fontSize * 2;
+    // Escape XML special chars so event names like "Tom & Jerry" don't break the SVG
+    const escapeXml = (s: string) =>
+      s
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
+    const text = escapeXml(watermarkText);
+
+    // Adaptive font size: scales with the image, clamped to a sane range.
+    // Honours an explicit fontSize option if the caller passes one.
+    const fontSize =
+      options?.fontSize ??
+      Math.round(Math.max(16, Math.min(40, Math.min(imgWidth, imgHeight) * 0.032)));
+
+    // Pill geometry
+    const charW = fontSize * 0.6;                 // rough advance width for bold sans
+    const textW = watermarkText.length * charW;   // estimate (use raw length, not escaped)
+    const padX = Math.round(fontSize * 0.75);
+    const padY = Math.round(fontSize * 0.45);
+    const pillW = Math.round(textW + padX * 2);
+    const pillH = Math.round(fontSize + padY * 2);
+    const radius = Math.round(fontSize * 0.45);
+
+    // Transparent margin around the pill — gives an edge offset AND room for the blur
+    const margin = Math.round(fontSize * 1.0);
+    const svgWidth = pillW + margin * 2;
+    const svgHeight = pillH + margin * 2;
+
+    // Centre the text inside the pill
+    const cx = margin + pillW / 2;
+    const cy = margin + pillH / 2;
+    const baseline = cy + fontSize * 0.34;
 
     const svgText = `
       <svg width="${svgWidth}" height="${svgHeight}" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <style>
-            .watermark { 
-              font-family: Arial, sans-serif; 
-              font-size: ${fontSize}px; 
-              fill: white;
-              fill-opacity: ${opacity};
-              font-weight: bold;
-            }
-            .shadow {
-              font-family: Arial, sans-serif; 
-              font-size: ${fontSize}px; 
-              fill: black;
-              fill-opacity: 0.8;
-              font-weight: bold;
-            }
-          </style>
+          <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="${Math.max(3, fontSize * 0.18)}" />
+          </filter>
         </defs>
-        <text x="4" y="${fontSize + 4}" class="shadow">${watermarkText}</text>
-        <text x="0" y="${fontSize}" class="watermark">${watermarkText}</text>
+        <g opacity="${opacity}">
+          <!-- soft drop shadow -->
+          <rect
+            x="${margin}" y="${margin + 3}"
+            width="${pillW}" height="${pillH}"
+            rx="${radius}" ry="${radius}"
+            fill="#000000" fill-opacity="0.45"
+            filter="url(#softShadow)" />
+          <!-- glass pill -->
+          <rect
+            x="${margin}" y="${margin}"
+            width="${pillW}" height="${pillH}"
+            rx="${radius}" ry="${radius}"
+            fill="#1f2024" fill-opacity="0.82"
+            stroke="#ffffff" stroke-opacity="0.14" stroke-width="1" />
+          <!-- label -->
+          <text
+            x="${cx}" y="${baseline}"
+            text-anchor="middle"
+            font-family="'Helvetica Neue', Helvetica, Arial, sans-serif"
+            font-size="${fontSize}px"
+            font-weight="600"
+            letter-spacing="0.4"
+            fill="#ffffff">${text}</text>
+        </g>
       </svg>
     `;
 

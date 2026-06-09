@@ -8,7 +8,7 @@ A full-stack platform for capturing, organizing, and discovering event photos an
 
 ## 🌐 Live Demo
 
-**[https://your-deployed-url.com](https://your-deployed-url.com)**
+**[https://your-deployed-url.com](https://event-media-platform-omega.vercel.app/)**
 
 ### Demo Accounts
 
@@ -16,12 +16,10 @@ Try the platform instantly with these pre-seeded accounts:
 
 | Role         | Email                      | Password    | Access |
 |--------------|----------------------------|-------------|--------|
-| **Admin**        | `admin@example.com`        | `admin123`  | Full access — manage users, roles, analytics |
+| **Admin**        | `admin@example.com`        | `admin!111`  | Full access — manage users, roles, analytics |
 | **Photographer** | `photographer@example.com` | `photo123`  | Upload media, manage own events & albums |
 | **Club Member**  | `club_m@example.com`       | `member123` | View club-only content, like, comment, tag |
 | **Viewer**       | `viewer@example.com`       | `viewer123` | Browse public content |
-
-> 💡 **Tip:** Log in as Admin to explore role approvals and the analytics dashboard. Log in as Viewer and upload a selfie under **Face Search** to find all photos you appear in.
 
 ---
 
@@ -229,12 +227,9 @@ npm run lint             # lint
 
 ---
 
-## License
+## Author
 
-Add a license of your choice (e.g. MIT) before publishing.
+Sanjana Nallapati 
+GitHub: https://github.com/sanjananallapati
 
 ---
-
-## Contributing
-
-Issues and pull requests are welcome. For larger changes, please open an issue first to discuss what you'd like to change.

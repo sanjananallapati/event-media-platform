@@ -33,7 +33,7 @@ export async function findMyPhotos(
 
     const [matches, total] = await Promise.all([
       prisma.faceMatch.findMany({
-        where: { userId },
+        where: { userId, media: { isActive: true } },
         skip,
         take: limitNum,
         orderBy: { similarity: 'desc' },
@@ -51,7 +51,7 @@ export async function findMyPhotos(
           },
         },
       }),
-      prisma.faceMatch.count({ where: { userId } }),
+      prisma.faceMatch.count({ where: { userId, media: { isActive: true } } }),
     ]);
 
     const photos = matches.map((m) => ({
@@ -104,7 +104,7 @@ export async function searchByFaceImage(
 
     // Find photos with face matches for these users
     const photos = await prisma.faceMatch.findMany({
-      where: { userId: { in: userIds } },
+      where: { userId: { in: userIds }, media: { isActive: true } },
       include: {
         media: {
           include: {

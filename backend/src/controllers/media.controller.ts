@@ -355,6 +355,10 @@ export async function deleteMedia(
       await deleteFromS3(media.thumbnailKey);
     }
 
+    // Remove face-recognition matches so deleted photos stop appearing
+    // (as broken/white tiles) in "My Photos" and face search results.
+    await prisma.faceMatch.deleteMany({ where: { mediaId: id } });
+
     // Soft delete
     await prisma.media.update({
       where: { id },

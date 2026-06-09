@@ -320,8 +320,29 @@ export async function deleteEvent(
       }
     }
 
-    // Hard delete — cascade handles related records via Prisma schema
-    await prisma.event.delete({ where: { id } });
+    // The Media/Album -> Event relations use onDelete: SetNull, NOT Cascade,
+    // so deleting the event alone would only orphan the photos (eventId set to
+    // null) and leave the rows in the database. We must delete them explicitly.
+    const albumIds = event.albums.map((a) => a.id);
+    const mediaIds = Array.from(
+      new Set([
+        ...event.media.map((m) => m.id),
+        ...event.albums.flatMap((a) => a.media.map((m) => m.id)),
+      ])
+    );
+
+    await prisma.$transaction([
+      // Deleting media cascades its child rows (likes, comments, favourites,
+      // shares, downloads, tags, faceMatches, aiTags) via their onDelete: Cascade.
+      ...(mediaIds.length
+        ? [prisma.media.deleteMany({ where: { id: { in: mediaIds } } })]
+        : []),
+      // Remove the event's albums (collaborators cascade from Album).
+      ...(albumIds.length
+        ? [prisma.album.deleteMany({ where: { id: { in: albumIds } } })]
+        : []),
+      prisma.event.delete({ where: { id } }),
+    ]);
 
     sendSuccess(res, null, 'Event deleted successfully');
   } catch (error) {

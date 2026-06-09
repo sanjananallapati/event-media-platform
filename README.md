@@ -31,13 +31,12 @@ Try the platform instantly with these pre-seeded accounts:
 - **Auto-tagging** — Uploaded media is automatically labeled with AI-detected tags and confidence scores.
 - **People tagging** — Manually tag users in photos and notify them.
 - **Social layer** — Likes, threaded comments, favourites, shares, and download tracking.
-- **Stories** — Ephemeral, auto-expiring story posts.
 - **Real-time notifications** — Live updates for likes, comments, tags, shares, and uploads via Socket.IO.
 - **Role-based access control** — Four roles (Admin, Photographer, Club Member, Viewer) with a self-service role-request and approval workflow.
 - **Access levels** — Public, Private, and Club-only visibility on events, albums, and individual media.
 - **Search** — Full search with autocomplete across events, media, and tags.
 - **Analytics dashboard** — Engagement and activity metrics for admins and event owners.
-- **Duplicate detection** — Perceptual hashing to flag duplicate uploads.
+- **Infinite scroll gallery** — Media loads continuously as the user scrolls, using an intersection observer for smooth loading.
 
 ---
 

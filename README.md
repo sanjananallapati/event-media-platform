@@ -147,18 +147,6 @@ npm install
 npm run dev                # starts Next.js on http://localhost:3000
 ```
 
----
-
-## Creating a Custom Admin
-
-To create a fresh admin account with your own credentials:
-
-```bash
-EMAIL=you@example.com PASSWORD=strongpass USERNAME=you npx ts-node prisma/create-admin.ts
-```
-
----
-
 ## API Overview
 
 Base URL: `/api`
